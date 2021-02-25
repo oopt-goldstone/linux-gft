@@ -236,6 +236,29 @@
 		};
 	};
 
+
+	i2c-mux@73 {
+                compatible = "nxp,pca9543";
+                reg = <0x73>;
+                #address-cells = <1>;
+                #size-cells = <0>;
+                i2c-mux-idle-disconnect;
+
+                i2c@0 {
+                        /* SFP #1 */
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+                        reg = <0>;
+                };
+
+                i2c@1 {
+                        /* SFP #2 */
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+                        reg = <1>;
+                };
+	};
+
 	tmp75@48 {
 		compatible = "ti,tmp75";
 		reg = <0x48>;
@@ -275,6 +298,10 @@
 	};
 };
 
+&i2c1 {
+        status = "okay";
+};
+
 &can0 {
 	status = "okay";
 
@@ -306,17 +333,27 @@
 	status = "okay";
 };
 
-&enetc_port0 {
-	phy-handle = <&sgmii_phy0>;
-	phy-connection-type = "sgmii";
+&pcie1	{
+	status = "okay";
+};
 
-	mdio {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		sgmii_phy0: ethernet-phy@2 {
-			reg = <0x2>;
-		};
-	};
+&pcie2	{
+	status = "okay";
+};
+
+&enetc_port0 {
+	//phy-handle = <&sgmii_phy0>;
+	//phy-connection-type = "sgmii";
+	status = "disabled";
+	//mdio {
+	//	#address-cells = <1>;
+	//	#size-cells = <0>;
+	//	sgmii_phy0: ethernet-phy@2 {
+	//		reg = <0x2>;
+	//	};
+	//};
+
+	//status = "disabled";
 };
 
 &enetc_port1 {
@@ -324,20 +361,20 @@
 };
 
 &enetc_mdio_pf3 {
-	qsgmii_phy1: ethernet-phy@10 {
-		reg = <0x10>;
+	qsgmii_phy1: ethernet-phy@0 {
+		reg = <0x0>;
 	};
 
-	qsgmii_phy2: ethernet-phy@11 {
-		reg = <0x11>;
+	qsgmii_phy2: ethernet-phy@1 {
+		reg = <0x1>;
 	};
 
-	qsgmii_phy3: ethernet-phy@12 {
-		reg = <0x12>;
+	qsgmii_phy3: ethernet-phy@2 {
+		reg = <0x2>;
 	};
 
-	qsgmii_phy4: ethernet-phy@13 {
-		reg = <0x13>;
+	qsgmii_phy4: ethernet-phy@3 {
+		reg = <0x3>;
 	};
 };
 
