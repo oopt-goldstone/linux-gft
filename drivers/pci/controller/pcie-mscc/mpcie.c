@@ -141,6 +141,7 @@ static int ms_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 		printk(KERN_INFO "Unable to map BAR #2 address");
   }
 //For Interrupts allocation
+/*
 	nvec = pci_alloc_irq_vectors(pdev,1,nvec,PCI_IRQ_MSI);
 	if(nvec < 0)
 	{
@@ -156,7 +157,7 @@ static int ms_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 			printk("unable to register irq 0x%x\n", pdev->irq);
 		}
 	}
-
+*/
 	pciData->pdev=pdev;
 
 	 /* Save private data pointer in device structure */
@@ -164,7 +165,7 @@ static int ms_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	ptr_local = (u32 *)pciData->barInfo[0].baseVAddr;
 
-	if(pciData->barInfo[0].baseVAddr != NULL)
+/*	if(pciData->barInfo[0].baseVAddr != NULL)
 	{
 		//For MSI
 		*(ptr_local + G5_ECC_DISABLE_OFFSET) = G5_ECC_DISABLE_VAL;
@@ -177,7 +178,7 @@ static int ms_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 		*(ptr_local + G5_DMA_ISTATUS_LOCAL_OFFSET) = G5_MSI_MASK_CLEAR_VAL;
 
 	}
-
+*/
 	Devdetect = TRUE;
 	return PCI_SUCCESS;
 }
@@ -269,14 +270,14 @@ static long char_dev_ioctl(struct file* f, u32 cmd, unsigned long arg)
 	switch (cmd)
 	{
 	case MPCI_IOCBAR_WRITE:
-		printk("in MPCI_IOCBAR_WRITE \n");
+		//printk("MPCI_IOCBAR_WRITE \n");
 		if (copy_from_user(&local_cf, (struct config_bar *)arg, sizeof(struct config_bar)))
 		{
 			return -EACCES;
 		}
-		printk("in MPCI_IOCBAR_WRITE bar    = %u \n", local_cf.bar);
-		printk("in MPCI_IOCBAR_WRITE offest = %u \n", local_cf.offset);
-		printk("in MPCI_IOCBAR_WRITE val    = %u \n", local_cf.val);
+		//printk("MPCI_IOCBAR_WRITE bar    = %u \n", local_cf.bar);
+		//printk("MPCI_IOCBAR_WRITE offest = %x \n", local_cf.offset);
+		//printk("MPCI_IOCBAR_WRITE val    = %x \n", local_cf.val);
 
 
 		ptr_local = (u32*)pciData->barInfo[local_cf.bar].baseVAddr;
@@ -284,22 +285,21 @@ static long char_dev_ioctl(struct file* f, u32 cmd, unsigned long arg)
 
 		break;
 	case MPCI_IOCBAR_READ:
-		printk("in MPCI_IOCBAR_READ \n");
+		//printk("MPCI_IOCBAR_READ \n");
 		if (copy_from_user(&local_cf, (struct config_bar*)arg, sizeof(struct config_bar)))
 		{
 			return -EACCES;
 		}
-		printk("in MPCI_IOCBAR_WRITE bar    = %u \n", local_cf.bar);
-		printk("in MPCI_IOCBAR_WRITE offest = %u \n", local_cf.offset);
-		printk("in MPCI_IOCBAR_WRITE val    = %u \n", local_cf.val);
-
+		//printk("MPCI_IOCBAR_READ bar    = %u \n", local_cf.bar);
+		//printk("MPCI_IOCBAR_READ offest = %x \n", local_cf.offset);
+		
 		ptr_local = (u32*)pciData->barInfo[local_cf.bar].baseVAddr;
 
 		local_cf.val = *(ptr_local + local_cf.offset);
+		//printk("MPCI_IOCBAR_READ val    = %x \n", local_cf.val);
 
 		ret = copy_to_user((struct config_bar*)arg, &local_cf, sizeof(struct config_bar));
-		printk(KERN_INFO "ret = %d\n", ret);
-
+		//printk(KERN_INFO "ret = %d\n", ret);
 		break;
 	case MPCI_IOCCONFIG_WRITE:
 		printk("in MPCI_IOCCONFIG_WRITE \n");
@@ -324,8 +324,8 @@ static long char_dev_ioctl(struct file* f, u32 cmd, unsigned long arg)
 			pci_read_config_dword(pciData->pdev, local_info.offset, &local_info.val_32);
 			//local_info.val_32 = config_read;
 		}
-		printk("PCI driver local_info.offset = %x\n", local_info.val_16);
-		printk("PCI driver local_info.offset = %x\n", local_info.val_32);
+		//printk("PCI driver local_info.offset = %x\n", local_info.val_16);
+		//printk("PCI driver local_info.offset = %x\n", local_info.val_32);
 		ret = copy_to_user((struct config_info*)arg, &local_info, sizeof(local_info));
 
 		break;

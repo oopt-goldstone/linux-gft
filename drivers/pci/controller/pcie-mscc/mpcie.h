@@ -31,6 +31,8 @@
 
 #define MPCI_VENDOR_ID  0x11aa
 #define MPCI_DEVICE_ID  0x1556
+//#define MPCI_VENDOR_ID  0x1957
+//#define MPCI_DEVICE_ID  0xee01
 
 #define PCI_BAR_0 0
 #define PCI_BAR_2 2
@@ -45,7 +47,7 @@
 
 #define SUCCESS 0L
 
-#define MPCIE_DMA_ENABLE 1
+#define MPCIE_DMA_ENABLE 0
 
 typedef unsigned char  u8;
 typedef unsigned short u16;
