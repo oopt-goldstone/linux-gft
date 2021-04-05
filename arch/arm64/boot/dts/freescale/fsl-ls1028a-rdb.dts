@@ -352,7 +352,6 @@
 	//		reg = <0x2>;
 	//	};
 	//};
-
 	//status = "disabled";
 };
 
@@ -361,24 +360,42 @@
 };
 
 &enetc_mdio_pf3 {
-	qsgmii_phy1: ethernet-phy@0 {
-		reg = <0x0>;
-	};
+	cfp2_phy1: ethernet-phy@0 {
+                reg = <0x0>;
+        };
 
-	qsgmii_phy2: ethernet-phy@1 {
-		reg = <0x1>;
-	};
+	cfp2_phy2: ethernet-phy@1 {
+                reg = <0x1>;
+        };
 
-	qsgmii_phy3: ethernet-phy@2 {
-		reg = <0x2>;
-	};
+	cfp2_phy3: ethernet-phy@2 {
+                reg = <0x2>;
+        };
 
-	qsgmii_phy4: ethernet-phy@3 {
-		reg = <0x3>;
-	};
+	cfp2_phy4: ethernet-phy@3 {
+                reg = <0x3>;
+        };
+
+	qsgmii_phy1: ethernet-phy@4 {
+                reg = <0x4>;
+        };
+
+        qsgmii_phy2: ethernet-phy@5 {
+                reg = <0x5>;
+        };
+
+        qsgmii_phy3: ethernet-phy@6 {
+                reg = <0x6>;
+        };
+
+        qsgmii_phy4: ethernet-phy@7 {
+                reg = <0x7>;
+        };
 };
 
+
 /* l2switch ports */
+
 &mscc_felix_ports {
 	port@0 {
 		status = "okay";
