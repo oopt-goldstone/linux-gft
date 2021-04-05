@@ -5,9 +5,13 @@
 #include "enetc_pf.h"
 
 #define ENETC_MDIO_DEV_ID	0xee01
+//#define ENETC_MDIO_DEV_ID       0xee11
 #define ENETC_MDIO_DEV_NAME	"FSL PCIe IE Central MDIO"
 #define ENETC_MDIO_BUS_NAME	ENETC_MDIO_DEV_NAME " Bus"
 #define ENETC_MDIO_DRV_NAME	ENETC_MDIO_DEV_NAME " driver"
+
+struct mii_bus *mdio_demo; //cody 
+EXPORT_SYMBOL(mdio_demo);  //cody
 
 static int enetc_pci_mdio_probe(struct pci_dev *pdev,
 				const struct pci_device_id *ent)
@@ -46,6 +50,8 @@ static int enetc_pci_mdio_probe(struct pci_dev *pdev,
 	mdio_priv->hw = hw;
 	mdio_priv->mdio_base = ENETC_EMDIO_BASE;
 	snprintf(bus->id, MII_BUS_ID_SIZE, "%s", dev_name(dev));
+
+	mdio_demo = bus; //cody for platform driver
 
 	pcie_flr(pdev);
 	err = pci_enable_device_mem(pdev);

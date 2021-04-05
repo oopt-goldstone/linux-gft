@@ -303,6 +303,9 @@ struct enetc_msg_cmd_set_primary_mac {
 /* PTP driver exports */
 extern int enetc_phc_index;
 
+/* mdio platform driver exports --- cody*/
+extern struct mii_bus *mdio_demo;
+
 /* SI common */
 int enetc_pci_probe(struct pci_dev *pdev, const char *name, int sizeof_priv);
 void enetc_pci_remove(struct pci_dev *pdev);
