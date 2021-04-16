@@ -497,7 +497,7 @@ static void ocelot_port_adjust_link(struct net_device *dev)
 	struct ocelot_port_private *priv = netdev_priv(dev);
 	struct ocelot *ocelot = priv->port.ocelot;
 	int port = priv->chip_port;
-
+	printk("GFT ocelot: %s \n", __func__);
 	ocelot_adjust_link(ocelot, port, dev->phydev);
 }
 
@@ -521,6 +521,7 @@ static int ocelot_port_open(struct net_device *dev)
 	struct ocelot *ocelot = ocelot_port->ocelot;
 	int port = priv->chip_port;
 	int err;
+	printk("GFT ocelot: %s \n", __func__);
 
 	if (priv->serdes) {
 		err = phy_set_mode_ext(priv->serdes, PHY_MODE_ETHERNET,
@@ -622,7 +623,7 @@ static int ocelot_port_xmit(struct sk_buff *skb, struct net_device *dev)
 	u8 grp = 0; /* Send everything on CPU group 0 */
 	unsigned int i, count, last;
 	int port = priv->chip_port;
-
+	printk("GFT ocelot: %s \n", __func__);
 	val = ocelot_read(ocelot, QS_INJ_STATUS);
 	if (!(val & QS_INJ_STATUS_FIFO_RDY(BIT(grp))) ||
 	    (val & QS_INJ_STATUS_WMARK_REACHED(BIT(grp))))
@@ -810,7 +811,7 @@ static int ocelot_port_get_phys_port_name(struct net_device *dev,
 	struct ocelot_port_private *priv = netdev_priv(dev);
 	int port = priv->chip_port;
 	int ret;
-
+	printk("GFT ocelot: %s \n", __func__);
 	ret = snprintf(buf, len, "p%d", port);
 	if (ret >= len)
 		return -EINVAL;
@@ -824,7 +825,7 @@ static int ocelot_port_set_mac_address(struct net_device *dev, void *p)
 	struct ocelot_port *ocelot_port = &priv->port;
 	struct ocelot *ocelot = ocelot_port->ocelot;
 	const struct sockaddr *addr = p;
-
+	printk("GFT ocelot: %s \n", __func__);
 	/* Learn the new net device MAC address in the mac table. */
 	ocelot_mact_learn(ocelot, PGID_CPU, addr->sa_data, ocelot_port->pvid,
 			  ENTRYTYPE_LOCKED);
@@ -2088,7 +2089,7 @@ void ocelot_init_port(struct ocelot *ocelot, int port)
 	struct ocelot_port *ocelot_port = ocelot->ports[port];
 
 	skb_queue_head_init(&ocelot_port->tx_skbs);
-
+	printk("GFT ocelot: %s \n", __func__);
 	/* Basic L2 initialization */
 
 	/* Set MAC IFG Gaps
@@ -2141,7 +2142,7 @@ int ocelot_probe_port(struct ocelot *ocelot, u8 port,
 	struct ocelot_port *ocelot_port;
 	struct net_device *dev;
 	int err;
-
+	printk("GFT ocelot: %s port=%d\n", __func__, port);
 	dev = alloc_etherdev(sizeof(struct ocelot_port_private));
 	if (!dev)
 		return -ENOMEM;
@@ -2249,7 +2250,7 @@ int ocelot_init(struct ocelot *ocelot)
 	char queue_name[32];
 	int i, ret;
 	u32 port;
-
+	printk("GFT ocelot: %s \n", __func__);
 	if (ocelot->ops->reset) {
 		ret = ocelot->ops->reset(ocelot);
 		if (ret) {

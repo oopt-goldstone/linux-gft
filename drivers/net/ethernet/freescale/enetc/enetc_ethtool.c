@@ -57,7 +57,7 @@ static void enetc_get_regs(struct net_device *ndev, struct ethtool_regs *regs,
 	u32 *buf = (u32 *)regbuf;
 	int i, j;
 	u32 addr;
-
+	printk("GFT enetc_ethtool: %s \n", __func__);
 	for (i = 0; i < ARRAY_SIZE(enetc_si_regs); i++) {
 		*buf++ = enetc_si_regs[i];
 		*buf++ = enetc_rd(hw, enetc_si_regs[i]);

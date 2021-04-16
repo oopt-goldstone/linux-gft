@@ -211,6 +211,7 @@ enum macsec_bank {
 #define MSCC_PHY_EXTENDED_INT_MS_EGR	  BIT(9)
 
 /* Extended Page 3 Registers */
+#define MSCC_PHY_SERDES_PCS_CNTL		  16
 #define MSCC_PHY_SERDES_TX_VALID_CNT	  21
 #define MSCC_PHY_SERDES_TX_CRC_ERR_CNT	  22
 #define MSCC_PHY_SERDES_RX_VALID_CNT	  28
@@ -773,6 +774,7 @@ static int vsc85xx_mdix_set(struct phy_device *phydev, u8 mdix)
 			     DISABLE_POLARITY_CORR_MASK  |
 			     DISABLE_HP_AUTO_MDIX_MASK);
 	}
+	printk("GFT mscc: %s MSCC_PHY_BYPASS_CONTROL (%d)=0x%X\n", __func__, MSCC_PHY_BYPASS_CONTROL, reg_val);
 	rc = phy_write(phydev, MSCC_PHY_BYPASS_CONTROL, reg_val);
 	if (rc)
 		return rc;
@@ -1080,7 +1082,7 @@ static int vsc85xx_default_config(struct phy_device *phydev)
 {
 	int rc;
 	u16 reg_val;
-
+	printk("GFT mscc: %s \n", __func__);
 	phydev->mdix_ctrl = ETH_TP_MDI_AUTO;
 	mutex_lock(&phydev->lock);
 
@@ -1250,7 +1252,7 @@ static int vsc8584_cmd(struct phy_device *phydev, u16 val)
 {
 	unsigned long deadline;
 	u16 reg_val;
-
+	printk("GFT mscc: %s val=0x%X \n", __func__, PROC_CMD_NCOMPLETED | val);
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS,
 		       MSCC_PHY_PAGE_EXTENDED_GPIO);
 
@@ -1279,7 +1281,7 @@ static int vsc8584_micro_deassert_reset(struct phy_device *phydev,
 					bool patch_en)
 {
 	u32 enable, release;
-
+	printk("GFT mscc: %s patch_en=%d \n", __func__, patch_en);
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS,
 		       MSCC_PHY_PAGE_EXTENDED_GPIO);
 
@@ -1380,9 +1382,7 @@ out:
 static int vsc8584_patch_fw(struct phy_device *phydev,
 			    const struct firmware *fw)
 {
-
-	printk("GFT mscc: %s\n",__func__);
-	printk("GFT mscc: patch_arr size=%d\n",sizeof(patch_arr));
+	printk("GFT mscc: %s, patch_arr size=%d\n",__func__, sizeof(patch_arr));
 	//printk("mscc: fw->size=%d\n",fw->size);
 
 	int i, ret;
@@ -1407,15 +1407,26 @@ static int vsc8584_patch_fw(struct phy_device *phydev,
 		       INT_MEM_DATA(2));
 	phy_base_write(phydev, MSCC_INT_MEM_ADDR, 0x0000);
 
-
-	// for (i = 0; i < fw->size; i++)
-	// 	phy_base_write(phydev, MSCC_INT_MEM_CNTL, READ_PRAM |
-	// 		       INT_MEM_WRITE_EN | fw->data[i]);
-
-	for (i = 0; i < sizeof(patch_arr); i++)
+	if(0)
+	{
+		for (i = 0; i < fw->size; i++)
 		phy_base_write(phydev, MSCC_INT_MEM_CNTL, READ_PRAM |
-			       INT_MEM_WRITE_EN | patch_arr[i]);
-	printk("GFT mscc: %s -ok \n",__func__);
+			       INT_MEM_WRITE_EN | fw->data[i]);
+	}
+	else
+	{
+		for (i = 0; i < sizeof(patch_arr)/sizeof(patch_arr[0]); i++)
+		{
+			ret=phy_base_write(phydev, MSCC_INT_MEM_CNTL, READ_PRAM |
+						       INT_MEM_WRITE_EN | patch_arr[i]);
+			usleep_range(1000, 2000);
+			if(ret)
+				printk("GFT mscc: fw base_write error %s \n",ret);
+		}
+		
+		printk("GFT mscc: %s apply patch done!\n",__func__);
+	}
+	
 	/* Clear internal memory access */
 	phy_base_write(phydev, MSCC_INT_MEM_CNTL, READ_RAM);
 
@@ -1538,7 +1549,7 @@ static int vsc8574_config_pre_init(struct phy_device *phydev)
 	u16 crc, reg;
 	bool serdes_init;
 	int ret;
-	
+	printk("GFT mscc: %s \n", __func__);
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_STANDARD);
 
 	/* all writes below are broadcasted to all PHYs in the same package */
@@ -1554,6 +1565,10 @@ static int vsc8574_config_pre_init(struct phy_device *phydev)
 	 * values".
 	 */
 	phy_base_write(phydev, MSCC_PHY_EXT_PHY_CNTL_2, 0x0040);
+
+	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_EXTENDED_3);
+	phy_base_write(phydev, MSCC_PHY_SERDES_PCS_CNTL, 0x0180);
+	printk("GFT mscc: %s MSCC_PHY_SERDES_PCS_CNTL (%d)=0x%X \n", __func__, MSCC_PHY_SERDES_PCS_CNTL,0x0180);
 
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_TEST);
 
@@ -1593,34 +1608,37 @@ static int vsc8574_config_pre_init(struct phy_device *phydev)
 	reg &= ~SMI_BROADCAST_WR_EN;
 	phy_base_write(phydev, MSCC_PHY_EXT_CNTL_STATUS, reg);
 
-if(0)
-{
+	if (0) {
+		ret = request_firmware(&fw, MSCC_VSC8574_REVB_INT8051_FW, dev);
+		if (ret) {
+			dev_err(dev, "failed to load firmware %s, ret: %d\n",
+				MSCC_VSC8574_REVB_INT8051_FW, ret);
+			return ret;
+		}
+
+		/* Add one byte to size for the one added by the patch_fw function */
+		ret = vsc8584_get_fw_crc(
+			phydev, MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
+			fw->size + 1, &crc);
+		if (ret)
+			goto out;
+	}
+
 	ret = request_firmware(&fw, MSCC_VSC8574_REVB_INT8051_FW, dev);
 	if (ret) {
 		dev_err(dev, "failed to load firmware %s, ret: %d\n",
 			MSCC_VSC8574_REVB_INT8051_FW, ret);
-		return ret;
+		//return ret;
 	}
 
-
-	/* Add one byte to size for the one added by the patch_fw function */
-	ret = vsc8584_get_fw_crc(phydev,
-				 MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
-				 fw->size + 1, &crc);
-	if (ret)
-		goto out;
-}
-else
-{
 	/* Add one byte to size for the one added by the patch_fw function */
 	ret = vsc8584_get_fw_crc(phydev,
 				 MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
 				 sizeof(patch_arr) + 1, &crc);
+	printk("GFT mscc: ret=%d, 8051 FW CRC=0x%X\n", ret, crc);
 	if (ret)
 		goto out;
 
-}
-	printk("GFT mscc: crc=%d\n",crc);
 	if (crc == MSCC_VSC8574_REVB_INT8051_FW_CRC) {
 		serdes_init = vsc8574_is_serdes_init(phydev);
 
@@ -1640,7 +1658,7 @@ else
 
 		if (vsc8584_patch_fw(phydev, fw))
 			dev_warn(dev,
-				 "failed to patch FW, expect non-optimal device\n");
+				"failed to patch FW, expect non-optimal device\n");
 	}
 
 	if (!serdes_init) {
@@ -1657,26 +1675,26 @@ else
 		/* Add one byte to size for the one added by the patch_fw
 		 * function
 		 */
-		// ret = vsc8584_get_fw_crc(phydev,
-		// 			 MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
-		// 			 fw->size + 1, &crc);
-		// if (ret)
-		// 	goto out;
-		// printk("mscc: crc2=%d\n",crc);
-		// if (crc != MSCC_VSC8574_REVB_INT8051_FW_CRC)
-		// 	dev_warn(dev,
-		// 		 "FW CRC after patching is not the expected one, expect non-optimal device\n");
+		usleep_range(10000, 20000);
+		ret = vsc8584_get_fw_crc(
+			phydev, MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
+			sizeof(patch_arr) + 1, &crc);
+		printk("GFT mscc: ret=%d, 8051 FW CRC=0x%X\n", ret, crc);
+		if (crc != MSCC_VSC8574_REVB_INT8051_FW_CRC)
+			dev_warn(
+				dev,
+				"FW CRC after patching is not the expected one, expect non-optimal device\n");
 	}
 
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS,
 		       MSCC_PHY_PAGE_EXTENDED_GPIO);
 
-	ret = vsc8584_cmd(phydev, PROC_CMD_1588_DEFAULT_INIT |
-			  PROC_CMD_PHY_INIT);
+	ret = vsc8584_cmd(phydev,
+			  PROC_CMD_1588_DEFAULT_INIT | PROC_CMD_PHY_INIT);
 
 out:
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_STANDARD);
-
+	//printk("GFT mscc: %s out\n", __func__);
 	//release_firmware(fw);
 
 	return ret;
@@ -2815,7 +2833,7 @@ static bool vsc8584_is_pkg_init(struct phy_device *phydev, bool reversed)
 	struct vsc8531_private *vsc8531;
 	struct phy_device *phy;
 	int i, addr;
-
+	printk("GFT mscc: %s \n", __func__);
 	/* VSC8584 is a Quad PHY */
 	for (i = 0; i < 4; i++) {
 		vsc8531 = phydev->priv;
@@ -2848,7 +2866,7 @@ static int vsc8584_config_init(struct phy_device *phydev)
 	struct vsc8531_private *vsc8531 = phydev->priv;
 	u16 addr, val;
 	int ret, i;
-
+	printk("GFT mscc: %s \n", __func__);
 	phydev->mdix_ctrl = ETH_TP_MDI_AUTO;
 
 	mutex_lock(&phydev->mdio.bus->mdio_lock);
@@ -2915,12 +2933,12 @@ static int vsc8584_config_init(struct phy_device *phydev)
 
 	val = phy_base_read(phydev, MSCC_PHY_MAC_CFG_FASTLINK);
 	val &= ~MAC_CFG_MASK;
-	printk("GFT mscc: %s phydev->interface= %d \n", __func__, phydev->interface);
+	printk("GFT mscc: %s phydev->interface=%d \n", __func__, phydev->interface);
 	if (phydev->interface == PHY_INTERFACE_MODE_QSGMII)
 		val |= MAC_CFG_QSGMII;
 	else
 		val |= MAC_CFG_SGMII;
-
+	printk("GFT mscc: %s MSCC_PHY_MAC_CFG_FASTLINK (%d)=0x%X \n", __func__, MSCC_PHY_MAC_CFG_FASTLINK,val);
 	ret = phy_base_write(phydev, MSCC_PHY_MAC_CFG_FASTLINK, val);
 	if (ret)
 		goto err;
@@ -2937,23 +2955,27 @@ static int vsc8584_config_init(struct phy_device *phydev)
 		goto err;
 
 	usleep_range(10000, 20000);
+	printk("GFT mscc: %s addr=%d \n", __func__, addr);
 
-	/* Disable SerDes for 100Base-FX */
-	ret = vsc8584_cmd(phydev, PROC_CMD_FIBER_MEDIA_CONF |
-			  PROC_CMD_FIBER_PORT(addr) | PROC_CMD_FIBER_DISABLE |
-			  PROC_CMD_READ_MOD_WRITE_PORT |
-			  PROC_CMD_RST_CONF_PORT | PROC_CMD_FIBER_100BASE_FX);
-	if (ret)
-		goto err;
+	if (addr==2) //cu port
+	{
+		/* Disable SerDes for 100Base-FX */
+		ret = vsc8584_cmd(phydev, PROC_CMD_FIBER_MEDIA_CONF |
+				PROC_CMD_FIBER_PORT(addr) | PROC_CMD_FIBER_DISABLE |
+				PROC_CMD_READ_MOD_WRITE_PORT |
+				PROC_CMD_RST_CONF_PORT | PROC_CMD_FIBER_100BASE_FX);
+		if (ret)
+			goto err;
 
-	/* Disable SerDes for 1000Base-X */
-	ret = vsc8584_cmd(phydev, PROC_CMD_FIBER_MEDIA_CONF |
-			  PROC_CMD_FIBER_PORT(addr) | PROC_CMD_FIBER_DISABLE |
-			  PROC_CMD_READ_MOD_WRITE_PORT |
-			  PROC_CMD_RST_CONF_PORT | PROC_CMD_FIBER_1000BASE_X);
-	if (ret)
-		goto err;
-
+		/* Disable SerDes for 1000Base-X */
+		ret = vsc8584_cmd(phydev, PROC_CMD_FIBER_MEDIA_CONF |
+				PROC_CMD_FIBER_PORT(addr) | PROC_CMD_FIBER_DISABLE |
+				PROC_CMD_READ_MOD_WRITE_PORT |
+				PROC_CMD_RST_CONF_PORT | PROC_CMD_FIBER_1000BASE_X);
+		if (ret)
+			goto err;
+	}
+	
 	mutex_unlock(&phydev->mdio.bus->mdio_lock);
 
 #if IS_ENABLED(CONFIG_MACSEC)
@@ -2977,12 +2999,22 @@ static int vsc8584_config_init(struct phy_device *phydev)
 	phy_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_STANDARD);
 
 	val = phy_read(phydev, MSCC_PHY_EXT_PHY_CNTL_1);
+	printk("GFT mscc: %s Read MSCC_PHY_EXT_PHY_CNTL_1 (%d)=0x%X \n", __func__, MSCC_PHY_EXT_PHY_CNTL_1,val);	
 	val &= ~(MEDIA_OP_MODE_MASK | VSC8584_MAC_IF_SELECTION_MASK);
-	val |= MEDIA_OP_MODE_COPPER | (VSC8584_MAC_IF_SELECTION_SGMII <<
-				       VSC8584_MAC_IF_SELECTION_POS);
+	if (addr == 2) //cu port
+		val |= (MEDIA_OP_MODE_COPPER << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
+	else
+		val |= (MEDIA_OP_MODE_SERDES << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
+
+	// val |= MEDIA_OP_MODE_COPPER | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
+	// val |= (MEDIA_OP_MODE_AMS_COPPER_1000BASEX << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
+	
 	ret = phy_write(phydev, MSCC_PHY_EXT_PHY_CNTL_1, val);
-	printk("GFT mscc: %s genphy_soft_reset\n",__func__);
 	ret = genphy_soft_reset(phydev);
+	
+	val = phy_read(phydev, MSCC_PHY_EXT_PHY_CNTL_1);
+	printk("GFT mscc: %s Set MSCC_PHY_EXT_PHY_CNTL_1 (%d)=0x%X \n", __func__, MSCC_PHY_EXT_PHY_CNTL_1, val);				   
+	
 	if (ret)
 		return ret;
 
@@ -2995,6 +3027,7 @@ static int vsc8584_config_init(struct phy_device *phydev)
 	return 0;
 
 err:
+	printk("GFT mscc: %s err ret=%d\n", __func__, ret);
 	mutex_unlock(&phydev->mdio.bus->mdio_lock);
 	return ret;
 }
@@ -3508,7 +3541,7 @@ static int vsc85xx_config_intr(struct phy_device *phydev)
 static int vsc85xx_config_aneg(struct phy_device *phydev)
 {
 	int rc;
-
+	printk("GFT mscc: %s \n", __func__);
 	rc = vsc85xx_mdix_set(phydev, phydev->mdix_ctrl);
 	if (rc < 0)
 		return rc;
@@ -3554,7 +3587,7 @@ static int vsc8514_probe(struct phy_device *phydev)
 
 static int vsc8574_probe(struct phy_device *phydev)
 {
-	printk("GFT mscc: vsc8574_probe\n");
+	printk("GFT mscc: %s \n", __func__);
 	struct vsc8531_private *vsc8531;
 	u32 default_mode[4] = {VSC8531_LINK_1000_ACTIVITY,
 	   VSC8531_LINK_100_ACTIVITY, VSC8531_LINK_ACTIVITY,

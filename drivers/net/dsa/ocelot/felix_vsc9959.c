@@ -741,7 +741,7 @@ static void vsc9959_pcs_init_sgmii(struct phy_device *pcs,
 				   const struct phylink_link_state *state)
 {
 	int bmsr, bmcr;
-
+	printk("GFT felix_vsc9959: %s link_an_mode=%d \n", __func__, link_an_mode);
 	if (link_an_mode == MLO_AN_INBAND) {
 		/* Some PHYs like VSC8234 don't like it when AN restarts on
 		 * their system  side and they restart line side AN too, going
@@ -754,7 +754,11 @@ static void vsc9959_pcs_init_sgmii(struct phy_device *pcs,
 		bmcr = phy_read(pcs, MII_BMCR);
 		bmsr = phy_read(pcs, MII_BMSR);
 		if ((bmcr & BMCR_ANENABLE) && (bmsr & BMSR_LSTATUS))
+		{
+			printk("GFT felix_vsc9959: %s retrun\n", __func__);
 			return;
+		}
+			
 
 		/* SGMII spec requires tx_config_Reg[15:0] to be exactly 0x4001
 		 * for the MAC PCS in order to acknowledge the AN.
@@ -776,7 +780,7 @@ static void vsc9959_pcs_init_sgmii(struct phy_device *pcs,
 	} else {
 		u16 if_mode = ENETC_PCS_IF_MODE_SGMII_EN;
 		int speed;
-
+		printk("GFT felix_vsc9959: %s speed=%d \n", __func__, speed);
 		switch (state->speed) {
 		case SPEED_1000:
 			speed = ENETC_PCS_SPEED_1000;
@@ -863,7 +867,7 @@ static void vsc9959_pcs_init(struct ocelot *ocelot, int port,
 {
 	struct felix *felix = ocelot_to_felix(ocelot);
 	struct phy_device *pcs = felix->pcs[port];
-
+	// printk("GFT felix_vsc9959: %s \n", __func__); //polling
 	if (!pcs)
 		return;
 

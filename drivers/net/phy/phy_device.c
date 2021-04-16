@@ -1938,7 +1938,7 @@ int genphy_soft_reset(struct phy_device *phydev)
 {
 	u16 res = BMCR_RESET;
 	int ret;
-
+	printk("GFT mscc: %s \n",__func__);
 	if (phydev->autoneg == AUTONEG_ENABLE)
 		res |= BMCR_ANRESTART;
 

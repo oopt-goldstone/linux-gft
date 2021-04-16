@@ -1393,7 +1393,7 @@ static int enetc_phy_connect(struct net_device *ndev)
 	struct enetc_ndev_priv *priv = netdev_priv(ndev);
 	struct phy_device *phydev;
 	struct ethtool_eee edata;
-
+	printk("GFT enetc: %s \n", __func__);
 	if (!priv->phy_node)
 		return 0; /* phy-less mode */
 
@@ -1440,6 +1440,7 @@ int enetc_open(struct net_device *ndev)
 {
 	struct enetc_ndev_priv *priv = netdev_priv(ndev);
 	int err;
+	printk("GFT enetc: %s \n", __func__);
 
 	err = enetc_setup_irqs(priv);
 	if (err)
@@ -1873,7 +1874,7 @@ int enetc_pci_probe(struct pci_dev *pdev, const char *name, int sizeof_priv)
 	struct enetc_hw *hw;
 	size_t alloc_size;
 	int err, len;
-
+	printk("GFT enetc: %s \n", __func__);
 	pcie_flr(pdev);
 	err = pci_enable_device_mem(pdev);
 	if (err) {

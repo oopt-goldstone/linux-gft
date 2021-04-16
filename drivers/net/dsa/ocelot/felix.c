@@ -191,7 +191,7 @@ static int felix_port_enable(struct dsa_switch *ds, int port,
 			     struct phy_device *phy)
 {
 	struct ocelot *ocelot = ds->priv;
-
+	printk("GFT felix: %s \n", __func__);
 	ocelot_port_enable(ocelot, port, phy);
 
 	return 0;
@@ -200,6 +200,7 @@ static int felix_port_enable(struct dsa_switch *ds, int port,
 static void felix_port_disable(struct dsa_switch *ds, int port)
 {
 	struct ocelot *ocelot = ds->priv;
+	printk("GFT felix: %s \n", __func__);
 
 	return ocelot_port_disable(ocelot, port);
 }
@@ -262,6 +263,7 @@ static void felix_phylink_mac_config(struct dsa_switch *ds, int port,
 	struct ocelot_port *ocelot_port = ocelot->ports[port];
 	struct felix *felix = ocelot_to_felix(ocelot);
 	u32 mac_fc_cfg;
+	// printk("GFT felix: %s \n", __func__); //polling
 
 	/* Take port out of reset by clearing the MAC_TX_RST, MAC_RX_RST and
 	 * PORT_RST bits in DEV_CLOCK_CFG. Note that the way this system is
@@ -335,7 +337,7 @@ static void felix_phylink_mac_link_up(struct dsa_switch *ds, int port,
 {
 	struct ocelot *ocelot = ds->priv;
 	struct ocelot_port *ocelot_port = ocelot->ports[port];
-
+	printk("GFT felix: %s port=%d\n", __func__, port);
 	/* Enable MAC module */
 	ocelot_port_writel(ocelot_port, DEV_MAC_ENA_CFG_RX_ENA |
 			   DEV_MAC_ENA_CFG_TX_ENA, DEV_MAC_ENA_CFG);
@@ -366,7 +368,7 @@ static void felix_get_strings(struct dsa_switch *ds, int port,
 static void felix_get_ethtool_stats(struct dsa_switch *ds, int port, u64 *data)
 {
 	struct ocelot *ocelot = ds->priv;
-
+	printk("GFT felix: %s port=%d\n", __func__, port);
 	ocelot_get_ethtool_stats(ocelot, port, data);
 }
 
@@ -573,6 +575,7 @@ static int felix_setup(struct dsa_switch *ds)
 	struct ocelot *ocelot = ds->priv;
 	struct felix *felix = ocelot_to_felix(ocelot);
 	int port, err;
+	printk("GFT felix: %s \n", __func__);
 
 	err = felix_init_structs(felix, ds->num_ports);
 	if (err)
@@ -810,6 +813,7 @@ static int felix_pci_probe(struct pci_dev *pdev,
 	struct ocelot *ocelot;
 	struct felix *felix;
 	int err;
+	printk("GFT felix: %s \n", __func__);
 
 	err = pci_enable_device(pdev);
 	if (err) {

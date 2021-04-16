@@ -1081,5 +1081,5 @@ CONFIG_SENSORS_LM90=y
 
 CONFIG_PCIE_MFPGA=y
 CONFIG_CAN_DEV=y
-#CONFIG_EXTRA_FIRMWARE="microchip/mscc_vsc8584_revb_int8051_fb48.bin microchip/mscc_vsc8574_revb_int8051_29e8.bin"
-#CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
+CONFIG_EXTRA_FIRMWARE="microchip/mscc_vsc8584_revb_int8051_fb48.bin microchip/mscc_vsc8574_revb_int8051_29e8.bin"
+CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
