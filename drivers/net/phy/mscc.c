@@ -2975,6 +2975,28 @@ static int vsc8584_config_init(struct phy_device *phydev)
 		if (ret)
 			goto err;
 	}
+	else // SFP port
+	{
+
+		/* Enable SerDes for 100Base-FX */
+		/*
+		ret = vsc8584_cmd(phydev, PROC_CMD_FIBER_MEDIA_CONF |
+				PROC_CMD_FIBER_PORT(addr)  |
+				PROC_CMD_READ_MOD_WRITE_PORT |
+				PROC_CMD_RST_CONF_PORT | PROC_CMD_FIBER_100BASE_FX);
+		if (ret)
+			goto err;
+		*/
+		
+		/* Enable SerDes for 1000Base-X */
+		
+		ret = vsc8584_cmd(phydev, PROC_CMD_FIBER_MEDIA_CONF |
+				PROC_CMD_FIBER_PORT(addr)  |
+				PROC_CMD_READ_MOD_WRITE_PORT |
+				PROC_CMD_RST_CONF_PORT | PROC_CMD_FIBER_1000BASE_X);
+		if (ret)
+			goto err;
+	}
 	
 	mutex_unlock(&phydev->mdio.bus->mdio_lock);
 
@@ -2999,7 +3021,7 @@ static int vsc8584_config_init(struct phy_device *phydev)
 	phy_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_STANDARD);
 
 	val = phy_read(phydev, MSCC_PHY_EXT_PHY_CNTL_1);
-	printk("GFT mscc: %s Read MSCC_PHY_EXT_PHY_CNTL_1 (%d)=0x%X \n", __func__, MSCC_PHY_EXT_PHY_CNTL_1,val);	
+	// printk("GFT mscc: %s Read MSCC_PHY_EXT_PHY_CNTL_1 (%d)=0x%X \n", __func__, MSCC_PHY_EXT_PHY_CNTL_1,val);	
 	val &= ~(MEDIA_OP_MODE_MASK | VSC8584_MAC_IF_SELECTION_MASK);
 	if (addr == 2) //cu port
 		val |= (MEDIA_OP_MODE_COPPER << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
