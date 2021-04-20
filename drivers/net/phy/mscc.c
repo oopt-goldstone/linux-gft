@@ -1281,7 +1281,7 @@ static int vsc8584_micro_deassert_reset(struct phy_device *phydev,
 					bool patch_en)
 {
 	u32 enable, release;
-	printk("GFT mscc: %s patch_en=%d \n", __func__, patch_en);
+	//printk("GFT mscc: %s patch_en=%d \n", __func__, patch_en);
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS,
 		       MSCC_PHY_PAGE_EXTENDED_GPIO);
 
@@ -1622,13 +1622,6 @@ static int vsc8574_config_pre_init(struct phy_device *phydev)
 			fw->size + 1, &crc);
 		if (ret)
 			goto out;
-	}
-
-	ret = request_firmware(&fw, MSCC_VSC8574_REVB_INT8051_FW, dev);
-	if (ret) {
-		dev_err(dev, "failed to load firmware %s, ret: %d\n",
-			MSCC_VSC8574_REVB_INT8051_FW, ret);
-		//return ret;
 	}
 
 	/* Add one byte to size for the one added by the patch_fw function */
