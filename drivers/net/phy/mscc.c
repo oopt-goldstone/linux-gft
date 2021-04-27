@@ -1252,7 +1252,7 @@ static int vsc8584_cmd(struct phy_device *phydev, u16 val)
 {
 	unsigned long deadline;
 	u16 reg_val;
-	printk("GFT mscc: %s val=0x%X \n", __func__, PROC_CMD_NCOMPLETED | val);
+	printk("GFT mscc: %s (18)=0x%X \n", __func__, PROC_CMD_NCOMPLETED | val);
 	phy_base_write(phydev, MSCC_EXT_PAGE_ACCESS,
 		       MSCC_PHY_PAGE_EXTENDED_GPIO);
 
@@ -1628,7 +1628,7 @@ static int vsc8574_config_pre_init(struct phy_device *phydev)
 	ret = vsc8584_get_fw_crc(phydev,
 				 MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
 				 sizeof(patch_arr) + 1, &crc);
-	printk("GFT mscc: ret=%d, 8051 FW CRC=0x%X\n", ret, crc);
+	printk("GFT mscc: Get 8051 FW CRC=0x%X ret=%d\n", crc, ret);
 	if (ret)
 		goto out;
 
@@ -1672,7 +1672,7 @@ static int vsc8574_config_pre_init(struct phy_device *phydev)
 		ret = vsc8584_get_fw_crc(
 			phydev, MSCC_VSC8574_REVB_INT8051_FW_START_ADDR,
 			sizeof(patch_arr) + 1, &crc);
-		printk("GFT mscc: ret=%d, 8051 FW CRC=0x%X\n", ret, crc);
+		printk("GFT mscc: Get 8051 FW CRC=0x%X ret=%d\n", crc, ret);
 		if (crc != MSCC_VSC8574_REVB_INT8051_FW_CRC)
 			dev_warn(
 				dev,
@@ -3016,10 +3016,11 @@ static int vsc8584_config_init(struct phy_device *phydev)
 	val = phy_read(phydev, MSCC_PHY_EXT_PHY_CNTL_1);
 	// printk("GFT mscc: %s Read MSCC_PHY_EXT_PHY_CNTL_1 (%d)=0x%X \n", __func__, MSCC_PHY_EXT_PHY_CNTL_1,val);	
 	val &= ~(MEDIA_OP_MODE_MASK | VSC8584_MAC_IF_SELECTION_MASK);
-	if (addr == 2) //cu port
-		val |= (MEDIA_OP_MODE_COPPER << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
+	if (addr == 2) // Port 2  ==> Cat5 Cu port
+		val |= (MEDIA_OP_MODE_COPPER << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS); //0x4  ==> Cat5 Cu port
 	else
-		val |= (MEDIA_OP_MODE_SERDES << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
+		//val |= (MEDIA_OP_MODE_SERDES << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS); //0x104 ==> CuSFP
+		val |= (MEDIA_OP_MODE_1000BASEX << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);//0x204 ==>1000BaseX/SFP Media
 
 	// val |= MEDIA_OP_MODE_COPPER | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
 	// val |= (MEDIA_OP_MODE_AMS_COPPER_1000BASEX << MEDIA_OP_MODE_POS) | (VSC8584_MAC_IF_SELECTION_SGMII << VSC8584_MAC_IF_SELECTION_POS);
