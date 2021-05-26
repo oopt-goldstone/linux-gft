@@ -35,6 +35,9 @@
 	case PHY_##_state:			\
 		return __stringify(_state);	\
 
+bool is_disable_mdio_vsc8504 = 0;
+EXPORT_SYMBOL(is_disable_mdio_vsc8504);
+
 static const char *phy_state_to_str(enum phy_state st)
 {
 	switch (st) {
@@ -899,49 +902,55 @@ void phy_state_machine(struct work_struct *work)
 	bool needs_aneg = false, do_suspend = false;
 	enum phy_state old_state;
 	int err = 0;
+	
+	if(is_disable_mdio_vsc8504) {
+		//printk("VSC8504 mdio disable... function: %s \n", __func__);
+	}
+	else {
+		
+		mutex_lock(&phydev->lock);
 
-	mutex_lock(&phydev->lock);
+		old_state = phydev->state;
 
-	old_state = phydev->state;
+		switch (phydev->state) {
+		case PHY_DOWN:
+		case PHY_READY:
+			break;
+		case PHY_UP:
+			needs_aneg = true;
 
-	switch (phydev->state) {
-	case PHY_DOWN:
-	case PHY_READY:
-		break;
-	case PHY_UP:
-		needs_aneg = true;
+			break;
+		case PHY_NOLINK:
+		case PHY_RUNNING:
+			err = phy_check_link_status(phydev);
+			break;
+		case PHY_HALTED:
+			if (phydev->link) {
+				phydev->link = 0;
+				phy_link_down(phydev, true);
+			}
+			do_suspend = true;
+			break;
+		}	
 
-		break;
-	case PHY_NOLINK:
-	case PHY_RUNNING:
-		err = phy_check_link_status(phydev);
-		break;
-	case PHY_HALTED:
-		if (phydev->link) {
-			phydev->link = 0;
-			phy_link_down(phydev, true);
+		mutex_unlock(&phydev->lock);
+
+		if (needs_aneg)
+			err = phy_start_aneg(phydev);
+		else if (do_suspend)
+			phy_suspend(phydev);
+
+		if (err < 0)
+			phy_error(phydev);
+
+		if (old_state != phydev->state) {
+			phydev_dbg(phydev, "PHY state change %s -> %s\n",
+			   	phy_state_to_str(old_state),
+			   	phy_state_to_str(phydev->state));
+			if (phydev->drv && phydev->drv->link_change_notify)
+				phydev->drv->link_change_notify(phydev);
 		}
-		do_suspend = true;
-		break;
-	}
-
-	mutex_unlock(&phydev->lock);
-
-	if (needs_aneg)
-		err = phy_start_aneg(phydev);
-	else if (do_suspend)
-		phy_suspend(phydev);
-
-	if (err < 0)
-		phy_error(phydev);
-
-	if (old_state != phydev->state) {
-		phydev_dbg(phydev, "PHY state change %s -> %s\n",
-			   phy_state_to_str(old_state),
-			   phy_state_to_str(phydev->state));
-		if (phydev->drv && phydev->drv->link_change_notify)
-			phydev->drv->link_change_notify(phydev);
-	}
+	
 
 	/* Only re-schedule a PHY state machine change if we are polling the
 	 * PHY, if PHY_IGNORE_INTERRUPT is set, then we will be moving
@@ -951,10 +960,11 @@ void phy_state_machine(struct work_struct *work)
 	 * state machine would be pointless and possibly error prone when
 	 * called from phy_disconnect() synchronously.
 	 */
-	mutex_lock(&phydev->lock);
-	if (phy_polling_mode(phydev) && phy_is_started(phydev))
-		phy_queue_state_machine(phydev, PHY_STATE_TIME);
-	mutex_unlock(&phydev->lock);
+		mutex_lock(&phydev->lock);
+		if (phy_polling_mode(phydev) && phy_is_started(phydev))
+			phy_queue_state_machine(phydev, PHY_STATE_TIME);
+		mutex_unlock(&phydev->lock);
+	}
 }
 
 /**

@@ -25,6 +25,7 @@
 
 #define ENETC_MDIO_WRITE    		_IOWR(MPCI_IOC_MAGIC, 0, int)
 #define ENETC_MDIO_READ 		_IOWR(MPCI_IOC_MAGIC, 1, int)
+#define ENETC_MDIO_CONFIG		_IOWR(MPCI_IOC_MAGIC, 2, int)
 
 #define SUCCESS 0L
 #define IS_C45 1
@@ -37,6 +38,7 @@ typedef unsigned int   u32;
 struct config_mdio {
 
 	bool is_C45;
+	bool is_disable_mdio;
 	u32 phy_addr;
 	u32 dev_addr;
 	u32 reg_addr;
@@ -102,9 +104,9 @@ static long char_mdio_dev_ioctl(struct file* f, u32 cmd, unsigned long arg)
 		regnum = local_cf.reg_addr;
 	}
 
-	printk("in ENETC_MDIO phy address = %8x \n", local_cf.phy_addr);
-	printk("in ENETC_MDIO regnum = %8x \n", regnum);
-	printk("in ENETC_MDIO value    = %4x \n", local_cf.value);
+	//printk("in ENETC_MDIO phy address = %8x \n", local_cf.phy_addr);
+	//printk("in ENETC_MDIO regnum = %8x \n", regnum);
+	//printk("in ENETC_MDIO value    = %4x \n", local_cf.value);
 	
 	switch (cmd)
 	{
@@ -112,27 +114,31 @@ static long char_mdio_dev_ioctl(struct file* f, u32 cmd, unsigned long arg)
 		printk("in ENETC_MDIO_WRITE \n");
 		
 		mutex_lock(&mdio_demo->mdio_lock);
-		printk("mdio write start... \n");
+		//printk("mdio write start... \n");
 		ret = mdio_demo->write(mdio_demo, local_cf.phy_addr, regnum, local_cf.value);
-		printk("mdio write end... \n");
+		//printk("mdio write end... \n");
 		mutex_unlock(&mdio_demo->mdio_lock);
-		printk("mutex_unlock \n");
+		//printk("mutex_unlock \n");
 		
 		break;
 	case ENETC_MDIO_READ:
 		printk("in ENETC_MDIO_READ \n");
 		
 		mutex_lock(&mdio_demo->mdio_lock);
-		printk("mdio read start... \n");
+		//printk("mdio read start... \n");
 		local_cf.value = mdio_demo->read(mdio_demo, local_cf.phy_addr, regnum);
-		printk("mdio read end... \n");
+		//printk("mdio read end... \n");
 		mutex_unlock(&mdio_demo->mdio_lock);
-		printk("mutex_unlock \n");
+		//printk("mutex_unlock \n");
 
 		printk("in ENETC_MDIO_READ read value    = %4x \n", local_cf.value);
 		ret = copy_to_user((struct config_mdio*)arg, &local_cf, sizeof(struct config_mdio));
-		printk(KERN_INFO "ret = %d\n", ret);
+		//printk(KERN_INFO "ret = %d\n", ret);
 
+		break;
+	case ENETC_MDIO_CONFIG:
+		printk("in ENETC_MDIO_CONFIG \n");
+		is_disable_mdio_vsc8504 = local_cf.is_disable_mdio;
 		break;
 	}
 
