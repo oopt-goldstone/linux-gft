@@ -376,20 +376,16 @@
                 reg = <0x3>;
         };
 
-	qsgmii_phy1: ethernet-phy@4 {
-                reg = <0x4>;
+	qsgmii_phy1: ethernet-phy@8 {
+                reg = <0x8>;
         };
 
-        qsgmii_phy2: ethernet-phy@5 {
-                reg = <0x5>;
+        qsgmii_phy2: ethernet-phy@9 {
+                reg = <0x9>;
         };
 
-        qsgmii_phy3: ethernet-phy@6 {
-                reg = <0x6>;
-        };
-
-        qsgmii_phy4: ethernet-phy@7 {
-                reg = <0x7>;
+        qsgmii_phy3: ethernet-phy@a {
+                reg = <0xa>;
         };
 };
 
@@ -418,12 +414,6 @@
 		managed = "in-band-status";
 	};
 
-	port@3 {
-		status = "okay";
-		phy-handle = <&qsgmii_phy4>;
-		phy-mode = "qsgmii";
-		managed = "in-band-status";
-	};
 };
 
 &pwm0 {

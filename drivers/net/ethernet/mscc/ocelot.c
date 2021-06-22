@@ -2089,7 +2089,7 @@ void ocelot_init_port(struct ocelot *ocelot, int port)
 	struct ocelot_port *ocelot_port = ocelot->ports[port];
 
 	skb_queue_head_init(&ocelot_port->tx_skbs);
-	printk("GFT ocelot: %s \n", __func__);
+	printk("GFT ocelot: %s port=%d\n", __func__, port);
 	/* Basic L2 initialization */
 
 	/* Set MAC IFG Gaps
