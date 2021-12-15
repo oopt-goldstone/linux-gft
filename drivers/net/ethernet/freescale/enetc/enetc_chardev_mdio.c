@@ -23,18 +23,6 @@
 
 #define MPCI_IOC_MAGIC  'm'
 
-#define ENETC_MDIO_WRITE    		_IOWR(MPCI_IOC_MAGIC, 0, int)
-#define ENETC_MDIO_READ 		_IOWR(MPCI_IOC_MAGIC, 1, int)
-#define ENETC_MDIO_CONFIG		_IOWR(MPCI_IOC_MAGIC, 2, int)
-
-#define SUCCESS 0L
-#define IS_C45 1
-
-typedef unsigned char  u8;
-typedef unsigned short u16;
-typedef unsigned int   u32;
-
-
 struct config_mdio {
 
 	bool is_C45;
@@ -45,6 +33,18 @@ struct config_mdio {
 	u16 value;
 
 };
+
+#define ENETC_MDIO_WRITE    		_IOWR(MPCI_IOC_MAGIC, 0, struct config_mdio)
+#define ENETC_MDIO_READ 		_IOWR(MPCI_IOC_MAGIC, 1, struct config_mdio)
+#define ENETC_MDIO_CONFIG		_IOWR(MPCI_IOC_MAGIC, 2, struct config_mdio)
+
+#define SUCCESS 0L
+#define IS_C45 1
+
+typedef unsigned char  u8;
+typedef unsigned short u16;
+typedef unsigned int   u32;
+
 
 
 
