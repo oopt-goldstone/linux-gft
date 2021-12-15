@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
-common-objs := enetc.o enetc_cbdr.o enetc_ethtool.o enetc_chardev_mdio.o
+common-objs := enetc.o enetc_cbdr.o enetc_ethtool.o
 
 obj-$(CONFIG_FSL_ENETC) += fsl-enetc.o
 fsl-enetc-y := enetc_pf.o $(common-objs)
@@ -18,3 +18,5 @@ fsl-enetc-mdio-y := enetc_pci_mdio.o enetc_mdio.o
 obj-$(CONFIG_FSL_ENETC_PTP_CLOCK) += fsl-enetc-ptp.o
 fsl-enetc-ptp-y := enetc_ptp.o
 
+obj-$(CONFIG_FSL_ENETC_CHARDEV_MDIO) += fsl-enetc-chardev-mdio.o
+fsl-enetc-chardev-mdio-y := enetc_chardev_mdio.o
